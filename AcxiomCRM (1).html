@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>AcxiomCRM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f5f6fa;--sf:#fff;--tx:#1d2433;--mu:#6b7385;--bd:#e1e4ec;--pr:#3558e6;--ok:#1a9b5b;--er:#d63c3c;--wa:#c98a0a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--sf:#1b1f29;--tx:#e8eaf0;--mu:#9199ab;--bd:#2c3240;--pr:#6c87ff;--ok:#3ccf8a;--er:#ff6b6b;--wa:#e8b34a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151c;--sf:#1b1f29;--tx:#e8eaf0;--mu:#9199ab;--bd:#2c3240;--pr:#6c87ff;--ok:#3ccf8a;--er:#ff6b6b;--wa:#e8b34a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:inherit}
+.app{display:flex;min-height:100vh}.side{width:210px;background:var(--sf);border-right:1px solid var(--bd);padding:14px;flex-shrink:0}
+.side h1{font-size:18px;margin:0 0 14px;color:var(--pr)}.side a{display:block;padding:8px 10px;border-radius:6px;cursor:pointer;color:var(--tx)}
+.side a.on,.side a:hover{background:var(--bg);color:var(--pr)}.main{flex:1;padding:18px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+h2{margin:0;font-size:20px}.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg);border:1px solid var(--bd)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px}.card b{display:block;font-size:22px}.card span{color:var(--mu);font-size:12px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}.charts .card{height:260px}
+.btn{background:var(--pr);color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer}.btn.s{padding:3px 8px;font-size:12px}
+.btn.g{background:transparent;color:var(--pr);border:1px solid var(--bd)}.btn.d{background:var(--er)}
+.tw{overflow-x:auto;background:var(--sf);border:1px solid var(--bd);border-radius:8px}table{width:100%;border-collapse:collapse;white-space:nowrap}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd)}th{color:var(--mu);font-size:12px}
+input,select{width:100%;padding:7px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--sf)}
+.tools{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}.tools input{max-width:260px}
+.ov{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:14px;z-index:20}
+.md{background:var(--sf);border-radius:10px;padding:18px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
+.md label{display:block;margin-top:10px;font-weight:600;font-size:12px}.err{color:var(--er);font-size:12px;min-height:0}
+.login{max-width:360px;margin:8vh auto;padding:22px;background:var(--sf);border:1px solid var(--bd);border-radius:10px}
+.msg{padding:8px 10px;border-radius:6px;margin:8px 0;font-size:13px;background:var(--bg);border:1px solid var(--bd)}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--tx);color:var(--bg);padding:9px 14px;border-radius:8px;z-index:30}
+.demo{font-size:12px;color:var(--mu);margin-top:12px}.demo code{background:var(--bg);padding:1px 4px;border-radius:4px}
+@media(max-width:700px){.app{flex-direction:column}.side{width:auto;display:flex;flex-wrap:wrap;gap:4px;align-items:center}.side h1{width:100%;margin:0}}
+</style></head><body><div id="root"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const S={users:[
+{email:'admin@acxiom.com',pw:'Admin@123',name:'Asha Admin',role:'Admin',active:true,fails:0,lock:0},
+{email:'manager@acxiom.com',pw:'Manager@123',name:'Mohan Manager',role:'Manager',active:true,fails:0,lock:0},
+{email:'sales@acxiom.com',pw:'Sales@123',name:'Sana Sales',role:'SalesExecutive',active:true,fails:0,lock:0},
+{email:'sales2@acxiom.com',pw:'Sales@123',name:'Rahul Rao',role:'SalesExecutive',active:true,fails:0,lock:0}],
+cust:[{id:1,name:'Nova Textiles',email:'info@novatex.in',phone:'9876543210',company:'Nova Textiles Pvt Ltd',city:'Pune',status:'Active',owner:'sales@acxiom.com'},
+{id:2,name:'Bright Foods',email:'hello@brightfoods.in',phone:'9123456780',company:'Bright Foods',city:'Mumbai',status:'Active',owner:'sales2@acxiom.com'}],
+leads:[{id:1,name:'Karan Mehta',email:'karan@orbit.com',phone:'9988776655',company:'Orbit Tech',source:'Website',status:'New',value:150000,owner:'sales@acxiom.com'},
+{id:2,name:'Priya Nair',email:'priya@zenco.com',phone:'9812345678',company:'Zenco',source:'Referral',status:'Qualified',value:320000,owner:'sales@acxiom.com'},
+{id:3,name:'Dev Patel',email:'dev@kiwi.io',phone:'9701234567',company:'Kiwi',source:'Cold Call',status:'Contacted',value:90000,owner:'sales2@acxiom.com'},
+{id:4,name:'Isha Rao',email:'isha@lumo.in',phone:'9666655555',company:'Lumo',source:'Event',status:'Lost',value:60000,owner:'sales2@acxiom.com'}],
+opps:[{id:1,name:'Nova ERP Rollout',cust:'Nova Textiles',amount:500000,prob:60,close:'2027-02-15',stage:'Proposal',owner:'sales@acxiom.com'},
+{id:2,name:'Bright CRM Seats',cust:'Bright Foods',amount:240000,prob:80,close:'2026-12-10',stage:'Negotiation',owner:'sales2@acxiom.com'},
+{id:3,name:'Nova Support Plan',cust:'Nova Textiles',amount:120000,prob:100,close:'2026-08-20',stage:'Won',owner:'sales@acxiom.com'},
+{id:4,name:'Bright Audit',cust:'Bright Foods',amount:80000,prob:100,close:'2026-09-12',stage:'Won',owner:'sales2@acxiom.com'},
+{id:5,name:'Old Deal',cust:'Nova Textiles',amount:70000,prob:0,close:'2026-07-01',stage:'Lost',owner:'sales@acxiom.com'}],
+fus:[{id:1,rel:'Lead: Priya Nair',date:'2026-10-20',type:'Call',notes:'Send proposal',status:'Planned',owner:'sales@acxiom.com'},
+{id:2,rel:'Customer: Bright Foods',date:'2026-10-25',type:'Meeting',notes:'Renewal talk',status:'Planned',owner:'sales2@acxiom.com'}],
+acts:[{id:1,type:'Call',subject:'Intro call with Karan',description:'',date:'2026-10-14',rel:'Lead: Karan Mehta',status:'Completed',owner:'sales@acxiom.com'},{id:2,type:'Meeting',subject:'Demo for Bright Foods',description:'',date:'2026-10-22',rel:'Customer: Bright Foods',status:'Planned',owner:'sales2@acxiom.com'}],
+audit:[]};
+let me=null,view='dash',charts=[],q='',authMode='login';let pg=1,sk='',sd=1;const PS=5,NL=String.fromCharCode(10);
+const isSales=()=>me.role==='SalesExecutive',scope=a=>isSales()?a.filter(x=>x.owner===me.email):a;
+const nid=a=>Math.max(0,...a.map(x=>x.id))+1;
+function log(action,entity,rid,o='',n='',who){S.audit.unshift({t:new Date().toLocaleString(),user:who||(me&&me.email)||'anonymous',action,entity,rid,o,n,ip:'127.0.0.1'})}
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2200)}
+const reE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,reP=/^[6-9]\d{9}$/;
+const pwOk=p=>p.length>=8&&/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/\d/.test(p)&&/[^A-Za-z0-9]/.test(p);
+const money=n=>'₹'+Number(n).toLocaleString('en-IN');
+const owners=()=>S.users.filter(u=>u.role==='SalesExecutive'&&u.active).map(u=>u.email);
+const NAV=[['dash','Dashboard'],['cust','Customers'],['leads','Leads'],['opps','Opportunities'],['fus','Follow-Ups'],['acts','Activities'],['reports','Reports'],['api','API Console'],['audit','Audit Log','Admin,Manager'],['users','Users & Roles','Admin']];
+
+/* ---------- auth ---------- */
+function loginView(){
+ const reg=authMode==='reg';
+ $('#root').innerHTML=`<div class="login"><h2 style="color:var(--pr)">AcxiomCRM</h2><p style="color:var(--mu);margin-top:4px">${reg?'Register (Sales Executive)':'Sign in to continue'}</p>
+ ${reg?'<label>Name</label><input id="rn"><div class="err" id="e_rn"></div>':''}
+ <label style="display:block;margin-top:10px;font-weight:600;font-size:12px">Email</label><input id="em" type="text"><div class="err" id="e_em"></div>
+ <label style="display:block;margin-top:10px;font-weight:600;font-size:12px">Password</label><input id="pw" type="password"><div class="err" id="e_pw"></div>
+ <div id="lm"></div><button class="btn" style="width:100%;margin-top:12px" id="go">${reg?'Register':'Login'}</button>
+ <p style="text-align:center"><a href="#" id="sw" style="color:var(--pr)">${reg?'Back to login':'Create an account'}</a></p>
+ <div class="demo">Demo logins:<br><code>admin@acxiom.com</code> / <code>Admin@123</code><br><code>manager@acxiom.com</code> / <code>Manager@123</code><br><code>sales@acxiom.com</code> / <code>Sales@123</code><br>5 wrong passwords locks the account for 1 minute.</div></div>`;
+ $('#sw').onclick=e=>{e.preventDefault();authMode=reg?'login':'reg';loginView()};
+ $('#go').onclick=()=>{
+  const em=$('#em').value.trim().toLowerCase(),pw=$('#pw').value;document.querySelectorAll('.err').forEach(x=>x.textContent='');
+  let ok=true;if(!reE.test(em)){$('#e_em').textContent='Enter a valid email address.';ok=false}
+  if(!pw){$('#e_pw').textContent='Password is required.';ok=false}
+  if(reg){const n=$('#rn').value.trim();if(!n){$('#e_rn').textContent='Name is required.';ok=false}
+   if(pw&&!pwOk(pw)){$('#e_pw').textContent='Min 8 chars with upper, lower, digit and special character.';ok=false}
+   if(ok&&S.users.some(u=>u.email===em)){$('#e_em').textContent='Email already registered.';ok=false}
+   if(!ok)return;S.users.push({email:em,pw,name:n,role:'SalesExecutive',active:true,fails:0,lock:0});log('Register','User',em,'','SalesExecutive',em);toast('Registered. Please login.');authMode='login';return loginView()}
+  if(!ok)return;const u=S.users.find(x=>x.email===em);
+  if(u&&u.lock>Date.now()){$('#lm').innerHTML='<div class="msg">Account locked. Try again in '+Math.ceil((u.lock-Date.now())/1000)+'s.</div>';return}
+  if(!u||u.pw!==pw||!u.active){if(u){u.fails++;if(u.fails>=5){u.lock=Date.now()+60000;u.fails=0;log('Lockout','User',em,'','locked 1 min',em)}}
+   log('Failed Login','User',em,'','',em);$('#lm').innerHTML='<div class="msg">Invalid credentials'+(u&&!u.active?' (account inactive)':'')+'.</div>';return}
+  u.fails=0;me=u;log('Login','User',u.email);view='dash';app()};
+}
+/* ---------- shell ---------- */
+function app(){
+ const nav=NAV.filter(n=>!n[2]||n[2].split(',').includes(me.role)).map(n=>`<a data-v="${n[0]}" class="${view===n[0]?'on':''}">${n[1]}</a>`).join('');
+ $('#root').innerHTML=`<div class="app"><nav class="side"><h1>AcxiomCRM</h1>${nav}<a id="lo" style="color:var(--er)">Logout</a></nav><main class="main"><div class="top"><h2 id="ttl"></h2><span class="badge">${esc(me.name)} · ${me.role}</span></div><div id="v"></div></main></div>`;
+ document.querySelectorAll('[data-v]').forEach(a=>a.onclick=()=>{view=a.dataset.v;q='';pg=1;sk='';app()});
+ $('#lo').onclick=()=>{if(confirm('Logout?')){log('Logout','User',me.email);me=null;loginView()}};
+ charts.forEach(c=>c.destroy());charts=[];
+ ({dash,cust:()=>list('cust'),leads:()=>list('leads'),opps:()=>list('opps'),fus:()=>list('fus'),acts:()=>list('acts'),reports,api:apiView,audit,users})[view]();
+}
+const title=t=>$('#ttl').textContent=t;
+/* ---------- dashboard ---------- */
+function dash(){
+ title('Dashboard');const C=scope(S.cust),L=scope(S.leads),O=scope(S.opps);
+ const openL=L.filter(l=>!['Lost','Converted','Unqualified'].includes(l.status)).length,openO=O.filter(o=>!['Won','Lost'].includes(o.stage));
+ const cd=[['Total Customers',C.length],['Total Leads',L.length],['Open Leads',openL],['Total Opportunities',O.length],['Open Opportunities',openO.length],['Won',O.filter(o=>o.stage==='Won').length],['Lost',O.filter(o=>o.stage==='Lost').length],['Pipeline Value',money(openO.reduce((a,o)=>a+ +o.amount,0))]];
+ $('#v').innerHTML=`<div class="cards">${cd.map(c=>`<div class="card"><b>${c[1]}</b><span>${c[0]}</span></div>`).join('')}</div><div class="charts"><div class="card"><canvas id="c1"></canvas></div><div class="card"><canvas id="c2"></canvas></div><div class="card"><canvas id="c3"></canvas></div></div>`;
+ const ls=['New','Contacted','Qualified','Lost','Converted'],st=['Qualification','Proposal','Negotiation','Won','Lost'],mk={};
+ O.filter(o=>o.stage==='Won').forEach(o=>{const m=o.close.slice(0,7);mk[m]=(mk[m]||0)+ +o.amount});const ms=Object.keys(mk).sort();
+ const mk2=(id,type,labels,data,label)=>charts.push(new Chart($(id),{type,data:{labels,datasets:[{label,data,backgroundColor:['#3558e6','#1a9b5b','#c98a0a','#d63c3c','#8a5cf6']}]},options:{maintainAspectRatio:false,plugins:{title:{display:true,text:label},legend:{display:type==='doughnut'}}}}));
+ mk2('#c1','doughnut',ls,ls.map(s=>L.filter(l=>l.status===s).length),'Lead Status');
+ mk2('#c2','bar',st,st.map(s=>O.filter(o=>o.stage===s).length),'Opportunity Pipeline');
+ mk2('#c3','bar',ms,ms.map(m=>mk[m]),'Monthly Sales (Won)');
+}
+/* ---------- entity config ---------- */
+const reqV=l=>v=>String(v).trim()?'':l+' is required.';
+const emailV=v=>!String(v).trim()?'Email is required.':reE.test(v)?'':'Enter a valid email address.';
+const phoneV=v=>!String(v).trim()?'Phone is required.':reP.test(v)?'':'Enter a valid phone number (10 digits, starts 6-9).';
+const lenV=(l,n)=>v=>String(v).length>n?l+' must be at most '+n+' characters.':'';
+const both=(...f)=>(v,a)=>{for(const x of f){const r=x(v,a);if(r)return r}return ''};
+const LT={New:['Contacted','Lost'],Contacted:['Qualified','Unqualified','Lost'],Qualified:['Converted','Lost'],Unqualified:['Lost'],Converted:[],Lost:[]};
+const ownerF=()=>isSales()?[]:[{k:'owner',l:'Assigned To',t:'select',o:owners(),v:reqV('Assigned user')}];
+const CFG={
+ cust:{t:'Customers',a:'customer',cols:[['name','Name'],['email','Email'],['phone','Phone'],['company','Company'],['city','City'],['status','Status'],['owner','Owner']],
+  f:()=>[{k:'name',l:'Customer Name',v:both(reqV('Customer name'),lenV('Name',60))},{k:'email',l:'Email',v:emailV},{k:'phone',l:'Phone',v:phoneV},{k:'company',l:'Company',v:lenV('Company',80)},{k:'city',l:'City'},{k:'status',l:'Status',t:'select',o:['Active','Inactive']},...ownerF()],
+  def:{status:'Active'},chk:(d,id)=>{const o=S.cust.find(c=>c.id!==id&&(c.email.toLowerCase()===d.email.toLowerCase()||c.phone===d.phone));return o?{email:'Duplicate customer: email or phone already exists.'}:{}}},
+ leads:{t:'Leads',a:'lead',cols:[['name','Name'],['company','Company'],['source','Source'],['status','Status'],['value','Value',money],['owner','Owner']],
+  f:()=>[{k:'name',l:'Lead Name',v:reqV('Lead name')},{k:'email',l:'Email',v:emailV},{k:'phone',l:'Phone',v:phoneV},{k:'company',l:'Company'},{k:'source',l:'Source',t:'select',o:['Website','Referral','Cold Call','Event']},{k:'value',l:'Expected Value (₹)',t:'number',v:v=>v===''||isNaN(v)?'Enter a valid number.':+v<0||+v>100000000?'Value must be between 0 and 10,00,00,000.':''},...ownerF()],
+  def:{status:'New',source:'Website'}},
+ opps:{t:'Opportunities',a:'opportunity',cols:[['name','Name'],['cust','Customer'],['amount','Amount',money],['prob','Prob %'],['close','Close Date'],['stage','Stage'],['owner','Owner']],
+  f:()=>[{k:'name',l:'Opportunity Name',v:reqV('Opportunity name')},{k:'cust',l:'Customer',t:'select',o:S.cust.map(c=>c.name),v:reqV('Customer')},
+   {k:'amount',l:'Amount (₹)',t:'number',v:(v,a)=>v===''||isNaN(v)?'Enter a valid amount.':(+v<=0&&!['Lost'].includes(a.stage))?'Opportunity Amount must be greater than 0.':''},
+   {k:'prob',l:'Probability (%)',t:'number',v:v=>v===''||isNaN(v)||+v<0||+v>100?'Probability must be between 0 and 100.':''},
+   {k:'close',l:'Expected Close Date',t:'date',v:(v,a)=>!v?'Expected Close Date is required.':(v<today()&&!['Won','Lost'].includes(a.stage))?'Expected Close Date cannot be in the past.':''},
+   {k:'stage',l:'Stage',t:'select',o:['Qualification','Proposal','Negotiation','Won','Lost']},...ownerF()],def:{stage:'Qualification'}},
+ fus:{t:'Follow-Ups',a:'follow-up',cols:[['rel','Related To'],['date','Date'],['type','Type'],['notes','Notes'],['status','Status'],['owner','Owner']],
+  f:()=>[{k:'rel',l:'Related To (customer / lead)',t:'select',o:[...S.cust.map(c=>'Customer: '+c.name),...S.leads.map(l=>'Lead: '+l.name)],v:reqV('Related record')},
+   {k:'date',l:'Follow-Up Date',t:'date',v:v=>!v?'Follow-up date is required.':v<today()?'Follow-up date cannot be earlier than today.':''},
+   {k:'type',l:'Type',t:'select',o:['Call','Meeting','Email','Task']},{k:'notes',l:'Notes',v:lenV('Notes',200)},...ownerF()],def:{type:'Call',status:'Planned'}},
+ acts:{t:'Activities',a:'activity',cols:[['type','Type'],['subject','Subject'],['date','Date'],['rel','Related To'],['status','Status'],['owner','Owner']],
+  f:()=>[{k:'type',l:'Activity Type',t:'select',o:['Call','Meeting','Email','Task'],v:reqV('Activity type')},{k:'subject',l:'Subject',v:both(reqV('Subject'),lenV('Subject',80))},{k:'description',l:'Description',v:lenV('Description',200)},{k:'date',l:'Activity Date',t:'date',v:reqV('Activity date')},{k:'rel',l:'Related To',t:'select',o:[...S.cust.map(c=>'Customer: '+c.name),...S.leads.map(l=>'Lead: '+l.name)],v:reqV('Related record')},{k:'status',l:'Status',t:'select',o:['Planned','Completed','Cancelled']},...ownerF()],def:{type:'Call',status:'Planned'}}};
+/* ---------- generic list ---------- */
+function list(k){
+ const c=CFG[k];title(c.t);let rows=scope(S[k]);
+ const flt=q.toLowerCase();if(flt)rows=rows.filter(r=>Object.values(r).join(' ').toLowerCase().includes(flt));
+ if(sk)rows=[...rows].sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*sd);const all=rows,tot=rows.length,np=Math.max(1,Math.ceil(tot/PS));if(pg>np)pg=np;rows=rows.slice((pg-1)*PS,pg*PS);const today_=today();
+ $('#v').innerHTML=`<div class="tools"><input id="sq" placeholder="Search..." value="${esc(q)}"><button class="btn" id="add">+ New ${c.a}</button><button class="btn g" id="ex">Export CSV</button></div>
+ <div class="tw"><table><thead><tr>${c.cols.map(x=>`<th data-s="${x[0]}" style="cursor:pointer">${x[1]}${sk===x[0]?(sd>0?' ▲':' ▼'):''}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${rows.map(r=>`<tr>${c.cols.map(x=>'<td>'+esc(x[2]?x[2](r[x[0]]):r[x[0]])+(k==='fus'&&x[0]==='status'&&r.status==='Planned'&&r.date<today_?' <span style="color:var(--er)">(overdue)</span>':'')+'</td>').join('')}<td>${acts(k,r)}</td></tr>`).join('')||'<tr><td colspan="9">No records found.</td></tr>'}</tbody></table></div>${pager(tot,np)}`;
+ $('#sq').oninput=e=>{q=e.target.value;pg=1;list(k);const i=$('#sq');i.focus();i.setSelectionRange(q.length,q.length)};
+ $('#add').onclick=()=>form(k);$('#ex').onclick=()=>csv(c.t,c.cols.map(x=>x[1]),all.map(r=>c.cols.map(x=>r[x[0]])));wire(()=>list(k));
+ document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>action(k,+b.dataset.id,b.dataset.a,b.dataset.x));
+}
+function acts(k,r){
+ let h=`<button class="btn g s" data-a="edit" data-id="${r.id}">Edit</button> `;
+ if(k==='leads'){LT[r.status].filter(s=>s!=='Converted').forEach(s=>h+=`<button class="btn g s" data-a="status" data-x="${s}" data-id="${r.id}">→ ${s}</button> `);if(r.status==='Qualified')h+=`<button class="btn s" data-a="convert" data-id="${r.id}">Convert</button> `}
+ if((k==='fus'||k==='acts')&&r.status==='Planned')h+=`<button class="btn s" data-a="done" data-id="${r.id}">Complete</button> `;
+ if(me.role!=='SalesExecutive'||k==='fus'||k==='acts')h+=`<button class="btn d s" data-a="del" data-id="${r.id}">Delete</button>`;
+ return h;
+}
+function action(k,id,a,x){
+ const r=S[k].find(z=>z.id===id),c=CFG[k];
+ if(a==='edit')return form(k,r);
+ if(a==='del'){if(!confirm('Delete this '+c.a+'?'))return;S[k]=S[k].filter(z=>z.id!==id);log('Delete',c.a,id,JSON.stringify(r),'');toast('Deleted');return app()}
+ if(a==='status'){if(!LT[r.status].includes(x))return toast('Invalid status transition.');log('Update','lead',id,r.status,x);r.status=x;toast('Status updated');return app()}
+ if(a==='done'){log('Update',c.a,id,'Planned','Completed');r.status='Completed';toast('Marked as completed');return app()}
+ if(a==='convert'){const cu={id:nid(S.cust),name:r.name,email:r.email,phone:r.phone,company:r.company,city:'',status:'Active',owner:r.owner};
+  if(S.cust.some(z=>z.email.toLowerCase()===cu.email.toLowerCase()||z.phone===cu.phone))return toast('Customer with same email/phone already exists.');
+  S.cust.push(cu);const d=new Date();d.setMonth(d.getMonth()+2);S.opps.push({id:nid(S.opps),name:r.company+' Deal',cust:cu.name,amount:r.value||1,prob:30,close:d.toISOString().slice(0,10),stage:'Qualification',owner:r.owner});
+  r.status='Converted';log('Convert','lead',id,'Qualified','Converted → Customer '+cu.id);toast('Lead converted to customer and opportunity');app()}
+}
+/* ---------- form modal ---------- */
+function form(k,rec){
+ const c=CFG[k],fs=c.f(),d=rec||{...c.def};
+ const ov=document.createElement('div');ov.className='ov';
+ ov.innerHTML=`<div class="md"><h3 style="margin:0">${rec?'Edit':'New'} ${c.a}</h3>${fs.map(f=>`<label>${f.l}</label>${f.t==='select'?`<select data-k="${f.k}"><option value="">-- select --</option>${f.o.map(o=>`<option ${d[f.k]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input data-k="${f.k}" type="${f.t||'text'}" value="${esc(d[f.k]??'')}">`}<div class="err" data-e="${f.k}"></div>`).join('')}
+ <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end"><button class="btn g" id="cx">Cancel</button><button class="btn" id="sv">Save</button></div></div>`;
+ document.body.append(ov);$('#cx').onclick=()=>ov.remove();
+ $('#sv').onclick=()=>{
+  const v={...d};ov.querySelectorAll('[data-k]').forEach(i=>v[i.dataset.k]=i.value);if(isSales())v.owner=me.email;
+  let er={};fs.forEach(f=>{if(f.v){const m=f.v(v[f.k]??'',v);if(m)er[f.k]=m}});
+  if(!Object.keys(er).length&&c.chk)er=c.chk(v,rec&&rec.id);
+  ov.querySelectorAll('[data-e]').forEach(e=>e.textContent=er[e.dataset.e]||'');
+  if(Object.keys(er).length)return;
+  ['amount','prob','value'].forEach(n=>{if(n in v&&v[n]!=='')v[n]=+v[n]});
+  if(rec){log('Update',c.a,rec.id,JSON.stringify(rec),JSON.stringify(v));Object.assign(rec,v)}
+  else{v.id=nid(S[k]);S[k].push(v);log('Create',c.a,v.id,'',JSON.stringify(v))}
+  ov.remove();toast('Saved');app()};
+}
+/* ---------- audit & users ---------- */
+function audit(){
+ title('Audit Log');const fl=q.toLowerCase();let r=S.audit.filter(a=>!fl||Object.values(a).join(' ').toLowerCase().includes(fl));
+ $('#v').innerHTML=`<div class="tools"><input id="sq" placeholder="Filter by user, action, entity..." value="${esc(q)}"></div><div class="tw"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Record</th><th>Old</th><th>New</th><th>IP</th></tr></thead><tbody>${r.map(a=>`<tr><td>${a.t}</td><td>${esc(a.user)}</td><td>${a.action}</td><td>${esc(a.entity)}</td><td>${esc(a.rid)}</td><td>${esc(String(a.o).slice(0,40))}</td><td>${esc(String(a.n).slice(0,40))}</td><td>${a.ip}</td></tr>`).join('')||'<tr><td colspan="8">No audit entries yet.</td></tr>'}</tbody></table></div>`;
+ $('#sq').oninput=e=>{q=e.target.value;audit();const i=$('#sq');i.focus();i.setSelectionRange(q.length,q.length)};
+}
+function users(){
+ title('Users & Roles');
+ $('#v').innerHTML=`<div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Lockout</th><th>Actions</th></tr></thead><tbody>${S.users.map((u,i)=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td><select data-r="${i}" style="width:auto">${['Admin','Manager','SalesExecutive'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select></td><td>${u.active?'Active':'Inactive'}</td><td>${u.lock>Date.now()?'Locked':'No'}</td><td><button class="btn g s" data-t="${i}">${u.active?'Deactivate':'Activate'}</button> <button class="btn g s" data-u="${i}">Unlock</button></td></tr>`).join('')}</tbody></table></div><p class="demo">Password hashes are never shown. Role and status changes are audited.</p>`;
+ document.querySelectorAll('[data-r]').forEach(s=>s.onchange=()=>{const u=S.users[s.dataset.r];log('Role Change','User',u.email,u.role,s.value);u.role=s.value;toast('Role updated');users()});
+ document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const u=S.users[b.dataset.t];if(u===me)return toast('You cannot deactivate yourself.');u.active=!u.active;log('Update','User',u.email,'',u.active?'Activated':'Deactivated');users()});
+ document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const u=S.users[b.dataset.u];u.lock=0;u.fails=0;log('Unlock','User',u.email);toast('Unlocked');users()});
+}
+const wire=fn=>{document.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{sd=sk===x.dataset.s?-sd:1;sk=x.dataset.s;fn()});document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{pg=+b.dataset.p;fn()})};
+const pager=(t,np)=>`<div class='tools' style='margin-top:10px;align-items:center'><span class='badge'>${t} records</span>${Array.from({length:np},(_,i)=>`<button class='btn s ${i+1===pg?'':'g'}' data-p='${i+1}'>${i+1}</button>`).join('')}</div>`;
+function csv(n,h,rows){const Q=String.fromCharCode(34),e=v=>Q+String(v??'').split(Q).join(Q+Q)+Q,o=document.createElement('div');o.className='ov';o.innerHTML=`<div class='md'><h3 style='margin:0'>Export ${esc(n)} (CSV)</h3><p class='demo'>Copy this text and paste it into Excel or save it as a .csv file.</p><textarea id='ct' readonly rows='10' style='width:100%;background:var(--bg);color:var(--tx)'></textarea><div style='text-align:right;margin-top:10px'><button class='btn' id='cc'>Close</button></div></div>`;document.body.append(o);$('#ct').value=[h,...rows].map(r=>r.map(e).join(',')).join(NL);$('#ct').select();$('#cc').onclick=()=>o.remove()}
+let rp='Customer';
+function reports(){
+ title('Reports');const O=scope(S.opps),L=scope(S.leads),pc=(a,b)=>b?Math.round(a/b*100)+'%':'0%',sm=a=>[a.reduce((s,o)=>s+ +o.amount,0),Math.round(a.reduce((s,o)=>s+o.amount*o.prob/100,0))],op=O.filter(o=>!['Won','Lost'].includes(o.stage)),cv=L.filter(l=>l.status==='Converted').length,w=O.filter(o=>o.stage==='Won').length,lo=O.filter(o=>o.stage==='Lost').length,uc={};
+ S.audit.forEach(a=>uc[a.user]=(uc[a.user]||0)+1);
+ const T={Customer:[['Name','Status','Owner','City'],scope(S.cust).map(c=>[c.name,c.status,c.owner,c.city])],
+ Lead:[['Name','Source','Status','Owner','Converted'],L.map(l=>[l.name,l.source,l.status,l.owner,l.status==='Converted'?'Yes':'No'])],
+ 'Follow-Up':[['Related To','Date','Status','Owner','Overdue'],scope(S.fus).map(f=>[f.rel,f.date,f.status,f.owner,f.status==='Planned'&&f.date<today()?'Yes':'No'])],
+ Opportunity:[['Name','Stage','Amount','Prob %','Close Date'],O.map(o=>[o.name,o.stage,o.amount,o.prob,o.close])],
+ Pipeline:[['Group','Key','Amount','Weighted'],['Qualification','Proposal','Negotiation'].map(s=>['Stage',s,...sm(op.filter(o=>o.stage===s))]).concat([...new Set(op.map(o=>o.owner))].map(x=>['Owner',x,...sm(op.filter(o=>o.owner===x))]))],
+ Conversion:[['Metric','Value'],[['Leads',L.length],['Converted',cv],['Lead conversion',pc(cv,L.length)],['Opps won',w],['Opps lost',lo],['Win rate',pc(w,w+lo)]]],
+ 'User Activity':[['User','Actions'],Object.entries(uc)],
+ Audit:[['Time','User','Action','Entity','Record'],S.audit.map(a=>[a.t,a.user,a.action,a.entity,a.rid])]};
+ const ok=Object.keys(T).filter(k=>!(isSales()&&['User Activity','Audit'].includes(k))&&!(k==='Audit'&&me.role!=='Admin'));
+ if(!ok.includes(rp))rp=ok[0];
+ let [h,rows]=T[rp];const f=q.toLowerCase();if(f)rows=rows.filter(r=>r.join(' ').toLowerCase().includes(f));
+ if(sk!=='')rows=[...rows].sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*sd);
+ const all=rows,tot=rows.length,np=Math.max(1,Math.ceil(tot/PS));if(pg>np)pg=np;rows=rows.slice((pg-1)*PS,pg*PS);
+ $('#v').innerHTML=`<div class='tools'>${ok.map(k=>`<button class='btn s ${k===rp?'':'g'}' data-rt='${k}'>${k}</button>`).join('')}</div><div class='tools'><input id='sq' placeholder='Filter...' value='${esc(q)}'><button class='btn g' id='ex'>Export CSV</button></div><div class='tw'><table><thead><tr>${h.map((x,i)=>`<th data-s='${i}' style='cursor:pointer'>${x}${sk===String(i)?(sd>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')||'<tr><td colspan=9>No data.</td></tr>'}</tbody></table></div>${pager(tot,np)}`;
+ $('#sq').oninput=e=>{q=e.target.value;pg=1;reports();const i=$('#sq');i.focus();i.setSelectionRange(q.length,q.length)};
+ $('#ex').onclick=()=>csv(rp+' Report',h,all);
+ document.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{rp=b.dataset.rt;pg=1;sk='';q='';reports()});wire(reports);
+}
+function api(m,p,b){
+ if(!me)return[401,{error:'Unauthorized'}];
+ const u=p.split('?')[0].split('/').filter(Boolean),id=u[2]?+u[2]:null,mp={customers:'cust',leads:'leads',opportunities:'opps',followups:'fus'};
+ if(u[0]!=='api')return[404,{error:'Not found'}];
+ if(u[1]==='reports'&&u[2]==='pipeline'){if(isSales())return[403,{error:'Forbidden'}];const r={};S.opps.filter(x=>!['Won','Lost'].includes(x.stage)).forEach(x=>r[x.stage]=(r[x.stage]||0)+ +x.amount);return[200,{pipelineByStage:r}]}
+ const k=mp[u[1]];if(!k)return[404,{error:'Not found'}];
+ const sc=scope(S[k]),rec=id?S[k].find(z=>z.id===id):null;
+ if(m==='GET'&&!id)return[200,sc];
+ if(id&&!rec)return[404,{error:'Record not found'}];
+ if(rec&&!sc.includes(rec))return[403,{error:'Forbidden'}];
+ if(m==='GET')return[200,rec];
+ if(m==='DELETE'){if(!rec)return[400,{error:'Id required'}];if(isSales())return[403,{error:'Forbidden'}];S[k]=S[k].filter(z=>z!==rec);log('Delete (API)',CFG[k].a,id,JSON.stringify(rec),'');return[200,{deleted:id}]}
+ if(m!=='POST'&&m!=='PUT')return[405,{error:'Method not allowed'}];
+ if(m==='PUT'&&!rec)return[400,{error:'Id required'}];
+ const v={...(rec||CFG[k].def),...b,id:rec?rec.id:undefined};if(isSales())v.owner=me.email;const er={};
+ CFG[k].f().forEach(f=>{if(f.v){const x=f.v(v[f.k]??'',v);if(x)er[f.k]=x}});
+ if(k==='leads'){if(!(v.status in LT))er.status='Invalid lead status.';else if(rec&&v.status!==rec.status&&!LT[rec.status].includes(v.status))er.status='Invalid status transition.'}
+ if(Object.keys(er).length)return[400,{errors:er}];
+ const d=CFG[k].chk?CFG[k].chk(v,rec&&rec.id):{};if(Object.keys(d).length)return[409,{errors:d}];
+ ['amount','prob','value'].forEach(n=>{if(n in v&&v[n]!=='')v[n]=+v[n]});
+ if(rec){log('Update (API)',CFG[k].a,id,JSON.stringify(rec),JSON.stringify(v));Object.assign(rec,v);return[200,rec]}
+ v.id=nid(S[k]);S[k].push(v);log('Create (API)',CFG[k].a,v.id,'',JSON.stringify(v));return[201,v]}
+const PRE=[['GET customers','GET','/api/customers',''],['GET missing id (404)','GET','/api/customers/999',''],['POST invalid customer (400)','POST','/api/customers',JSON.stringify({name:'',email:'bad',phone:'123'})],['POST duplicate customer (409)','POST','/api/customers',JSON.stringify({name:'Nova Copy',email:'info@novatex.in',phone:'9000000001',owner:'sales@acxiom.com'})],['POST bad opportunity (400)','POST','/api/opportunities',JSON.stringify({name:'Test',cust:'Nova Textiles',amount:0,prob:101,close:'2020-01-01',stage:'Proposal',owner:'sales@acxiom.com'})],['POST valid lead (201)','POST','/api/leads',JSON.stringify({name:'Anil K',email:'anil@demo.in',phone:'9898989898',status:'New',value:50000,owner:'sales@acxiom.com'})],['GET pipeline report','GET','/api/reports/pipeline','']];
+function apiView(){
+ title('REST API Console');
+ $('#v').innerHTML=`<p class='demo' style='margin-top:0'>Simulated API running as <b>${esc(me.email)}</b>. It uses the same server-side rules as the forms, so tampered requests are rejected. Try the presets, then log in as another role and compare 403 results.</p><div class='tools'>${PRE.map((p,i)=>`<button class='btn g s' data-pr='${i}'>${p[0]}</button>`).join('')}</div><div class='tools'><select id='am' style='width:110px'>${['GET','POST','PUT','DELETE'].map(x=>`<option>${x}</option>`).join('')}</select><input id='ap' value='/api/customers' style='max-width:340px'><button class='btn' id='as'>Send</button></div><textarea id='ab' rows='5' placeholder='JSON body' style='width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx)'></textarea><pre id='ar' class='card' style='overflow:auto;max-height:340px;margin-top:10px;white-space:pre-wrap'></pre>`;
+ const send=()=>{let b={};try{b=$('#ab').value.trim()?JSON.parse($('#ab').value):{}}catch(e){$('#ar').textContent='HTTP 400'+NL+'Invalid JSON';return}
+  const[s,r]=api($('#am').value,$('#ap').value.trim(),b);$('#ar').textContent='HTTP '+s+NL+JSON.stringify(r,null,2)};
+ $('#as').onclick=send;
+ document.querySelectorAll('[data-pr]').forEach(x=>x.onclick=()=>{const p=PRE[x.dataset.pr];$('#am').value=p[1];$('#ap').value=p[2];$('#ab').value=p[3];send()});
+}
+loginView();
+</script></body></html>
